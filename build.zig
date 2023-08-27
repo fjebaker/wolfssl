@@ -4,20 +4,30 @@ pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
-    const static_lib = b.addStaticLibrary(.{
-        .name = "wolfssl",
-        .target = target,
-        .optimize = optimize,
-    });
+    const is_shared = b.option(bool, "shared", "Build wolfssl as a shared library.") orelse true;
 
-    static_lib.addIncludePath(std.build.LazyPath.relative("."));
-    addSourceFile(static_lib);
-    defineMacros(static_lib);
-    static_lib.linkLibC();
+    const lib = if (is_shared)
+        b.addSharedLibrary(.{
+            .name = "wolfssl",
+            .target = target,
+            .optimize = optimize,
+            .version = .{ .major = 5, .minor = 6, .patch = 3 },
+        })
+    else
+        b.addStaticLibrary(.{
+            .name = "wolfssl",
+            .target = target,
+            .optimize = optimize,
+        });
+
+    lib.addIncludePath(std.build.LazyPath.relative("."));
+    addSourceFile(lib);
+    defineMacros(lib);
+    lib.linkLibC();
     // include headers in the build products
-    static_lib.installHeadersDirectory("wolfssl", "wolfssl");
+    lib.installHeadersDirectory("wolfssl", "wolfssl");
 
-    b.installArtifact(static_lib);
+    b.installArtifact(lib);
 }
 
 fn defineMacros(lib: *std.build.CompileStep) void {
