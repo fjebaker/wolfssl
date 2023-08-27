@@ -1,11 +1,11 @@
 const std = @import("std");
 
-pub fn build(b: *std.Build) void {
-    const target = b.standardTargetOptions(.{});
-    const optimize = b.standardOptimizeOption(.{});
-
-    const is_shared = b.option(bool, "shared", "Build wolfssl as a shared library.") orelse true;
-
+fn createLibWolfSSL(
+    b: *std.Build,
+    is_shared: bool,
+    target: std.zig.CrossTarget,
+    optimize: std.builtin.Mode,
+) *std.build.CompileStep {
     const lib = if (is_shared)
         b.addSharedLibrary(.{
             .name = "wolfssl",
@@ -22,12 +22,96 @@ pub fn build(b: *std.Build) void {
 
     lib.addIncludePath(std.build.LazyPath.relative("."));
     addSourceFile(lib);
-    defineMacros(lib);
     lib.linkLibC();
     // include headers in the build products
     lib.installHeadersDirectory("wolfssl", "wolfssl");
+    return lib;
+}
 
+pub fn build(b: *std.Build) void {
+    const target = b.standardTargetOptions(.{});
+    const optimize = b.standardOptimizeOption(.{});
+
+    const is_shared = b.option(bool, "shared", "Build wolfssl as a shared library.") orelse true;
+
+    const lib = createLibWolfSSL(b, is_shared, target, optimize);
+    defineMacros(lib);
     b.installArtifact(lib);
+
+    const test_exe = b.addExecutable(.{
+        .name = "testsuite",
+        .target = target,
+        .optimize = optimize,
+    });
+    test_exe.addIncludePath(std.build.LazyPath.relative("."));
+    test_exe.addCSourceFiles(&test_sources, &test_flags);
+    const test_lib = createLibWolfSSL(b, is_shared, target, optimize);
+    defineTestMacros(test_lib);
+    test_exe.linkLibrary(test_lib);
+
+    const run_tests = b.addRunArtifact(test_exe);
+
+    const run_tests_step = b.step("test", "Build and run the testsuite");
+    run_tests_step.dependOn(&run_tests.step);
+}
+
+fn defineTestMacros(lib: *std.build.CompileStep) void {
+    lib.defineCMacro("HAVE_C___ATOMIC", "1");
+    lib.defineCMacro("HAVE_THREAD_LS", null);
+    lib.defineCMacro("NDEBUG", null);
+    lib.defineCMacro("NO_DO178", null);
+    lib.defineCMacro("WOLFSSL_X86_64_BUILD -pthread", null);
+    lib.defineCMacro("ERROR_QUEUE_PER_THREAD", null);
+    lib.defineCMacro("TFM_TIMING_RESISTANT", null);
+    lib.defineCMacro("ECC_TIMING_RESISTANT", null);
+    lib.defineCMacro("WC_RSA_BLINDING", null);
+    lib.defineCMacro("WOLFSSL_USE_ALIGN", null);
+    lib.defineCMacro("WOLFSSL_SHA224", null);
+    lib.defineCMacro("WOLFSSL_SHA512", null);
+    lib.defineCMacro("WOLFSSL_SHA384", null);
+    lib.defineCMacro("HAVE_HKDF", null);
+    lib.defineCMacro("NO_DSA", null);
+    lib.defineCMacro("HAVE_ECC", null);
+    lib.defineCMacro("TFM_ECC256", null);
+    lib.defineCMacro("ECC_SHAMIR", null);
+    lib.defineCMacro("WC_RSA_PSS", null);
+    lib.defineCMacro("WOLFSSL_PSS_LONG_SALT", null);
+    lib.defineCMacro("WOLFSSL_ASN_TEMPLATE", null);
+    lib.defineCMacro("WOLFSSL_ASN_PRINT", null);
+    lib.defineCMacro("WOLFSSL_BASE64_ENCODE", null);
+    lib.defineCMacro("WOLFSSL_SHA3", null);
+    lib.defineCMacro("WOLFSSL_NO_SHAKE128", null);
+    lib.defineCMacro("WOLFSSL_NO_SHAKE256", null);
+    lib.defineCMacro("HAVE_POLY1305", null);
+    lib.defineCMacro("HAVE_CHACHA", null);
+    lib.defineCMacro("HAVE_HASHDRBG", null);
+    lib.defineCMacro("HAVE_TLS_EXTENSIONS", null);
+    lib.defineCMacro("HAVE_SNI", null);
+    lib.defineCMacro("HAVE_TLS_EXTENSIONS", null);
+    lib.defineCMacro("HAVE_SUPPORTED_CURVES", null);
+    lib.defineCMacro("HAVE_FFDHE_2048", null);
+    lib.defineCMacro("HAVE_SUPPORTED_CURVES", null);
+    lib.defineCMacro("WOLFSSL_TLS13", null);
+    lib.defineCMacro("HAVE_TLS_EXTENSIONS", null);
+    lib.defineCMacro("HAVE_EXTENDED_MASTER", null);
+    lib.defineCMacro("NO_RC4", null);
+    lib.defineCMacro("HAVE_ENCRYPT_THEN_MAC", null);
+    lib.defineCMacro("NO_PSK", null);
+    lib.defineCMacro("NO_MD4", null);
+    lib.defineCMacro("WOLFSSL_SP_MATH_ALL", null);
+    lib.defineCMacro("WOLFSSL_SP_X86_64", null);
+    lib.defineCMacro("WC_NO_ASYNC_THREADING", null);
+    lib.defineCMacro("HAVE_DH_DEFAULT_PARAMS", null);
+    lib.defineCMacro("WOLFSSL_SYS_CA_CERTS", null);
+    lib.defineCMacro("NO_DES3", null);
+    lib.defineCMacro("GCM_TABLE_4BIT", null);
+    lib.defineCMacro("HAVE_AESGCM", null);
+    lib.defineCMacro("HAVE_TLS_EXTENSIONS", null);
+    lib.defineCMacro("HAVE_SERVER_RENEGOTIATION_INFO", null);
+    lib.defineCMacro("NO_INLINE", null);
+    lib.defineCMacro("HAVE_WC_INTROSPECTION", null);
+    lib.defineCMacro("WOLFSSL_HAVE_ATOMIC_H", null);
+    lib.defineCMacro("HAVE_CONFIG_H", null);
 }
 
 fn defineMacros(lib: *std.build.CompileStep) void {
@@ -36,9 +120,17 @@ fn defineMacros(lib: *std.build.CompileStep) void {
     lib.defineCMacro("WC_RSA_BLINDING", null);
     lib.defineCMacro("HAVE_PTHREAD", null);
     lib.defineCMacro("NO_INLINE", null);
+    lib.defineCMacro("NO_MD4", null);
     lib.defineCMacro("WOLFSSL_TLS13", null);
+    lib.defineCMacro("WOLFSSL_SHA224", null);
+    lib.defineCMacro("WOLFSSL_SHA3", null);
+    lib.defineCMacro("WOLFSSL_SHA384", null);
+    lib.defineCMacro("WOLFSSL_SHA512", null);
+    lib.defineCMacro("WOLFSSL_KEY_GEN", null);
+    lib.defineCMacro("WOLFSSL_ASN_TEMPLATE", null);
     lib.defineCMacro("WC_RSA_PSS", null);
     lib.defineCMacro("HAVE_TLS_EXTENSIONS", null);
+    lib.defineCMacro("HAVE_WC_INTROSPECTION", null);
     lib.defineCMacro("HAVE_SNI", null);
     lib.defineCMacro("HAVE_MAX_FRAGMENT", null);
     lib.defineCMacro("HAVE_TRUNCATED_HMAC", null);
@@ -47,6 +139,7 @@ fn defineMacros(lib: *std.build.CompileStep) void {
     lib.defineCMacro("HAVE_HKDF", null);
     lib.defineCMacro("BUILD_GCM", null);
     lib.defineCMacro("HAVE_AESCCM", null);
+    lib.defineCMacro("HAVE_AESGCM", null);
     lib.defineCMacro("HAVE_SESSION_TICKET", null);
     lib.defineCMacro("HAVE_CHACHA", null);
     lib.defineCMacro("HAVE_POLY1305", null);
@@ -69,12 +162,26 @@ fn addSourceFile(lib: *std.build.CompileStep) void {
     lib.addCSourceFiles(&wolfcrypt_sources, &wolfcrypt_flags);
 }
 
+const test_flags = [_][]const u8{
+    "-std=c99",
+};
+
 const wolfssl_flags = [_][]const u8{
     "-std=c89", "-Wno-int-conversion",
 };
 
 const wolfcrypt_flags = [_][]const u8{
     "-std=c89", "-Wno-int-conversion",
+};
+
+const test_sources = [_][]const u8{
+    "wolfcrypt/test/test.c",
+    // "examples/client/client.c",
+    // "examples/echoclient/echoclient.c",
+    // "examples/echoserver/echoserver.c",
+    // "examples/server/server.c",
+    // "testsuite/testsuite.c",
+    // "testsuite/testsuite.c",
 };
 
 const wolfssl_sources = [_][]const u8{
