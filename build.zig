@@ -121,11 +121,13 @@ fn defineTestMacros(lib: *std.build.CompileStep, target: std.zig.CrossTarget) !v
     lib.defineCMacro("WOLFSSL_SYS_CA_CERTS", null);
     lib.defineCMacro("WOLFSSL_TLS13", null);
     lib.defineCMacro("WOLFSSL_USE_ALIGN", null);
-    lib.defineCMacro("WOLFSSL_X86_64_BUILD -pthread", null);
 
     const arch = target.getCpuArch();
     switch (arch) {
-        .x86_64 => lib.defineCMacro("WOLFSSL_SP_X86_64", null),
+        .x86_64 => {
+            lib.defineCMacro("WOLFSSL_SP_X86_64", null);
+            lib.defineCMacro("WOLFSSL_X86_64_BUILD", null);
+        },
         .x86 => lib.defineCMacro("WOLFSSL_SP_X86", null),
         .aarch64 => {
             lib.defineCMacro("WOLFSSL_ARMASM", null);
@@ -142,7 +144,7 @@ fn defineMacros(lib: *std.build.CompileStep) void {
     lib.defineCMacro("BUILD_GCM", null);
     lib.defineCMacro("ECC_TIMING_RESISTANT", null);
 
-    lib.defineCMacro("HAVE_AESGCM", null);
+    lib.defineCMacro("HAVE_AESCCM", null);
     lib.defineCMacro("HAVE_ALPN", null);
     lib.defineCMacro("HAVE_CHACHA", null);
     lib.defineCMacro("HAVE_ECC", null);
@@ -162,10 +164,8 @@ fn defineMacros(lib: *std.build.CompileStep) void {
     lib.defineCMacro("HAVE_TLS_EXTENSIONS", null);
     lib.defineCMacro("HAVE_TRUNCATED_HMAC", null);
     lib.defineCMacro("HAVE_TRUSTED_CA", null);
-    lib.defineCMacro("HAVE_WC_INTROSPECTION", null);
 
     lib.defineCMacro("NO_INLINE", null);
-    lib.defineCMacro("NO_MD4", null);
 
     lib.defineCMacro("OPENSSL_EXTRA_X509", null);
     lib.defineCMacro("OPENSSL_EXTRA_X509_SMALL", null);
@@ -178,12 +178,6 @@ fn defineMacros(lib: *std.build.CompileStep) void {
     lib.defineCMacro("WC_RSA_BLINDING", null);
     lib.defineCMacro("WC_RSA_PSS", null);
 
-    lib.defineCMacro("WOLFSSL_ASN_TEMPLATE", null);
-    lib.defineCMacro("WOLFSSL_KEY_GEN", null);
-    lib.defineCMacro("WOLFSSL_SHA224", null);
-    lib.defineCMacro("WOLFSSL_SHA384", null);
-    lib.defineCMacro("WOLFSSL_SHA3", null);
-    lib.defineCMacro("WOLFSSL_SHA512", null);
     lib.defineCMacro("WOLFSSL_TLS13", null);
 }
 
