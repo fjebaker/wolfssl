@@ -35,29 +35,27 @@ pub fn build(b: *std.Build) !void {
     const optimize = b.standardOptimizeOption(.{});
 
     const is_shared = b.option(bool, "shared", "Build wolfssl as a shared library.") orelse true;
+    const with_tests = b.option(bool, "tests", "Build test suite as executable.") orelse false;
 
     const lib = createLibWolfSSL(b, is_shared, target, optimize);
     defineMacros(lib);
     b.installArtifact(lib);
 
-    const test_exe = b.addExecutable(.{
-        .name = "testsuite",
-        .target = target,
-        .optimize = optimize,
-    });
-    test_exe.addIncludePath(std.build.LazyPath.relative("."));
-    test_exe.addCSourceFiles(&test_sources, &test_flags);
-    const test_lib = createLibWolfSSL(b, is_shared, target, optimize);
+    if (with_tests) {
+        const test_exe = b.addExecutable(.{
+            .name = "testsuite",
+            .target = target,
+            .optimize = optimize,
+        });
+        test_exe.addIncludePath(std.build.LazyPath.relative("."));
+        test_exe.addCSourceFiles(&test_sources, &test_flags);
+        const test_lib = createLibWolfSSL(b, is_shared, target, optimize);
 
-    try defineTestMacros(test_lib, target);
-    test_exe.linkLibrary(test_lib);
+        try defineTestMacros(test_lib, target);
+        test_exe.linkLibrary(test_lib);
 
-    b.installArtifact(test_exe);
-
-    const run_tests = b.addRunArtifact(test_exe);
-
-    const run_tests_step = b.step("test", "Build and run the testsuite");
-    run_tests_step.dependOn(&run_tests.step);
+        b.installArtifact(test_exe);
+    }
 }
 
 fn defineTestMacros(lib: *std.build.CompileStep, target: std.zig.CrossTarget) !void {
