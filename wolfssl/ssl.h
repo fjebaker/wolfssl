@@ -337,7 +337,7 @@ struct WOLFSSL_ASN1_OBJECT {
     WOLFSSL_GENERAL_NAME* gn;
 #endif
 
-    struct d { /* dereferenced */
+    struct _d { /* dereferenced */
         WOLFSSL_ASN1_STRING* dNSName;
         WOLFSSL_ASN1_STRING  ia5_internal;
         WOLFSSL_ASN1_STRING* ia5; /* points to ia5_internal */
@@ -347,7 +347,7 @@ struct WOLFSSL_ASN1_OBJECT {
         WOLFSSL_ASN1_OTHERNAME* otherName; /* added for Apache httpd */
 #endif
         WOLFSSL_ASN1_STRING* iPAddress; /* points to iPAddress_internal */
-    } d;
+    } _d;
 };
 
 /* wrap ASN1 types */

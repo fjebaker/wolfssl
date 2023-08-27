@@ -1533,9 +1533,9 @@ WOLFSSL_ASN1_OBJECT* wolfSSL_ASN1_OBJECT_new(void)
     if (obj != NULL) {
         XMEMSET(obj, 0, sizeof(WOLFSSL_ASN1_OBJECT));
         /* Setup pointers. */
-        obj->d.ia5 = &(obj->d.ia5_internal);
+        obj->_d.ia5 = &(obj->_d.ia5_internal);
     #if defined(OPENSSL_ALL)
-        obj->d.iPAddress = &(obj->d.iPAddress_internal);
+        obj->_d.iPAddress = &(obj->_d.iPAddress_internal);
     #endif
         /* Object was allocated. */
         obj->dynamic |= WOLFSSL_ASN1_DYNAMIC;
