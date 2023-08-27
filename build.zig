@@ -1,5 +1,7 @@
 const std = @import("std");
 
+const CompileError = error{ArchitectureNotSupported};
+
 fn createLibWolfSSL(
     b: *std.Build,
     is_shared: bool,
@@ -28,7 +30,7 @@ fn createLibWolfSSL(
     return lib;
 }
 
-pub fn build(b: *std.Build) void {
+pub fn build(b: *std.Build) !void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
@@ -46,8 +48,11 @@ pub fn build(b: *std.Build) void {
     test_exe.addIncludePath(std.build.LazyPath.relative("."));
     test_exe.addCSourceFiles(&test_sources, &test_flags);
     const test_lib = createLibWolfSSL(b, is_shared, target, optimize);
-    defineTestMacros(test_lib);
+
+    try defineTestMacros(test_lib, target);
     test_exe.linkLibrary(test_lib);
+
+    b.installArtifact(test_exe);
 
     const run_tests = b.addRunArtifact(test_exe);
 
@@ -55,106 +60,133 @@ pub fn build(b: *std.Build) void {
     run_tests_step.dependOn(&run_tests.step);
 }
 
-fn defineTestMacros(lib: *std.build.CompileStep) void {
-    lib.defineCMacro("HAVE_C___ATOMIC", "1");
-    lib.defineCMacro("HAVE_THREAD_LS", null);
-    lib.defineCMacro("NDEBUG", null);
-    lib.defineCMacro("NO_DO178", null);
-    lib.defineCMacro("WOLFSSL_X86_64_BUILD -pthread", null);
-    lib.defineCMacro("ERROR_QUEUE_PER_THREAD", null);
-    lib.defineCMacro("TFM_TIMING_RESISTANT", null);
-    lib.defineCMacro("ECC_TIMING_RESISTANT", null);
-    lib.defineCMacro("WC_RSA_BLINDING", null);
-    lib.defineCMacro("WOLFSSL_USE_ALIGN", null);
-    lib.defineCMacro("WOLFSSL_SHA224", null);
-    lib.defineCMacro("WOLFSSL_SHA512", null);
-    lib.defineCMacro("WOLFSSL_SHA384", null);
-    lib.defineCMacro("HAVE_HKDF", null);
-    lib.defineCMacro("NO_DSA", null);
-    lib.defineCMacro("HAVE_ECC", null);
-    lib.defineCMacro("TFM_ECC256", null);
+fn defineTestMacros(lib: *std.build.CompileStep, target: std.zig.CrossTarget) !void {
     lib.defineCMacro("ECC_SHAMIR", null);
+    lib.defineCMacro("ECC_TIMING_RESISTANT", null);
+    lib.defineCMacro("ERROR_QUEUE_PER_THREAD", null);
+    lib.defineCMacro("GCM_TABLE_4BIT", null);
+
+    lib.defineCMacro("HAVE_AESGCM", null);
+    lib.defineCMacro("HAVE_C___ATOMIC", "1");
+    lib.defineCMacro("HAVE_CHACHA", null);
+    lib.defineCMacro("HAVE_DH_DEFAULT_PARAMS", null);
+    lib.defineCMacro("HAVE_ECC", null);
+    lib.defineCMacro("HAVE_ENCRYPT_THEN_MAC", null);
+    lib.defineCMacro("HAVE_EXTENDED_MASTER", null);
+    lib.defineCMacro("HAVE_FFDHE_2048", null);
+    lib.defineCMacro("HAVE_HASHDRBG", null);
+    lib.defineCMacro("HAVE_HKDF", null);
+    lib.defineCMacro("HAVE_POLY1305", null);
+    lib.defineCMacro("HAVE_SERVER_RENEGOTIATION_INFO", null);
+    lib.defineCMacro("HAVE_SNI", null);
+    lib.defineCMacro("HAVE_SUPPORTED_CURVES", null);
+    lib.defineCMacro("HAVE_THREAD_LS", null);
+    lib.defineCMacro("HAVE_TLS_EXTENSIONS", null);
+    lib.defineCMacro("HAVE_WC_INTROSPECTION", null);
+
+    std.fs.cwd().access("config.h", .{}) catch |err| {
+        try std.io.getStdErr().writeAll(
+            "config.h missing: run ./autogen.sh && configure first (only needed for tests)",
+        );
+        return err;
+    };
+    lib.defineCMacro("HAVE_CONFIG_H", null);
+
+    lib.defineCMacro("NO_DES3", null);
+    lib.defineCMacro("NO_DO178", null);
+    lib.defineCMacro("NO_DSA", null);
+    lib.defineCMacro("NO_HAVE_CONFIG_H", null);
+    lib.defineCMacro("NO_INLINE", null);
+    lib.defineCMacro("NO_MD4", null);
+    lib.defineCMacro("NO_PSK", null);
+    lib.defineCMacro("NO_RC4", null);
+
+    lib.defineCMacro("TFM_ECC256", null);
+    lib.defineCMacro("TFM_TIMING_RESISTANT", null);
+
+    lib.defineCMacro("WC_NO_ASYNC_THREADING", null);
+    lib.defineCMacro("WC_RSA_BLINDING", null);
     lib.defineCMacro("WC_RSA_PSS", null);
-    lib.defineCMacro("WOLFSSL_PSS_LONG_SALT", null);
-    lib.defineCMacro("WOLFSSL_ASN_TEMPLATE", null);
+
     lib.defineCMacro("WOLFSSL_ASN_PRINT", null);
+    lib.defineCMacro("WOLFSSL_ASN_TEMPLATE", null);
     lib.defineCMacro("WOLFSSL_BASE64_ENCODE", null);
-    lib.defineCMacro("WOLFSSL_SHA3", null);
+    lib.defineCMacro("WOLFSSL_HAVE_ATOMIC_H", null);
     lib.defineCMacro("WOLFSSL_NO_SHAKE128", null);
     lib.defineCMacro("WOLFSSL_NO_SHAKE256", null);
-    lib.defineCMacro("HAVE_POLY1305", null);
-    lib.defineCMacro("HAVE_CHACHA", null);
-    lib.defineCMacro("HAVE_HASHDRBG", null);
-    lib.defineCMacro("HAVE_TLS_EXTENSIONS", null);
-    lib.defineCMacro("HAVE_SNI", null);
-    lib.defineCMacro("HAVE_TLS_EXTENSIONS", null);
-    lib.defineCMacro("HAVE_SUPPORTED_CURVES", null);
-    lib.defineCMacro("HAVE_FFDHE_2048", null);
-    lib.defineCMacro("HAVE_SUPPORTED_CURVES", null);
-    lib.defineCMacro("WOLFSSL_TLS13", null);
-    lib.defineCMacro("HAVE_TLS_EXTENSIONS", null);
-    lib.defineCMacro("HAVE_EXTENDED_MASTER", null);
-    lib.defineCMacro("NO_RC4", null);
-    lib.defineCMacro("HAVE_ENCRYPT_THEN_MAC", null);
-    lib.defineCMacro("NO_PSK", null);
-    lib.defineCMacro("NO_MD4", null);
+    lib.defineCMacro("WOLFSSL_PSS_LONG_SALT", null);
+    lib.defineCMacro("WOLFSSL_SHA224", null);
+    lib.defineCMacro("WOLFSSL_SHA384", null);
+    lib.defineCMacro("WOLFSSL_SHA3", null);
+    lib.defineCMacro("WOLFSSL_SHA512", null);
     lib.defineCMacro("WOLFSSL_SP_MATH_ALL", null);
-    lib.defineCMacro("WOLFSSL_SP_X86_64", null);
-    lib.defineCMacro("WC_NO_ASYNC_THREADING", null);
-    lib.defineCMacro("HAVE_DH_DEFAULT_PARAMS", null);
     lib.defineCMacro("WOLFSSL_SYS_CA_CERTS", null);
-    lib.defineCMacro("NO_DES3", null);
-    lib.defineCMacro("GCM_TABLE_4BIT", null);
-    lib.defineCMacro("HAVE_AESGCM", null);
-    lib.defineCMacro("HAVE_TLS_EXTENSIONS", null);
-    lib.defineCMacro("HAVE_SERVER_RENEGOTIATION_INFO", null);
-    lib.defineCMacro("NO_INLINE", null);
-    lib.defineCMacro("HAVE_WC_INTROSPECTION", null);
-    lib.defineCMacro("WOLFSSL_HAVE_ATOMIC_H", null);
-    lib.defineCMacro("HAVE_CONFIG_H", null);
+    lib.defineCMacro("WOLFSSL_TLS13", null);
+    lib.defineCMacro("WOLFSSL_USE_ALIGN", null);
+    lib.defineCMacro("WOLFSSL_X86_64_BUILD -pthread", null);
+
+    const arch = target.getCpuArch();
+    switch (arch) {
+        .x86_64 => lib.defineCMacro("WOLFSSL_SP_X86_64", null),
+        .x86 => lib.defineCMacro("WOLFSSL_SP_X86", null),
+        .aarch64 => {
+            lib.defineCMacro("WOLFSSL_ARMASM", null);
+            lib.defineCMacro("WOLFSSL_SP_ARM64_ASM", null);
+        },
+        else => |a| {
+            std.debug.print("Architecture: {any}", .{a});
+            return CompileError.ArchitectureNotSupported;
+        },
+    }
 }
 
 fn defineMacros(lib: *std.build.CompileStep) void {
-    lib.defineCMacro("TFM_TIMING_RESISTANT", null);
-    lib.defineCMacro("ECC_TIMING_RESISTANT", null);
-    lib.defineCMacro("WC_RSA_BLINDING", null);
-    lib.defineCMacro("HAVE_PTHREAD", null);
-    lib.defineCMacro("NO_INLINE", null);
-    lib.defineCMacro("NO_MD4", null);
-    lib.defineCMacro("WOLFSSL_TLS13", null);
-    lib.defineCMacro("WOLFSSL_SHA224", null);
-    lib.defineCMacro("WOLFSSL_SHA3", null);
-    lib.defineCMacro("WOLFSSL_SHA384", null);
-    lib.defineCMacro("WOLFSSL_SHA512", null);
-    lib.defineCMacro("WOLFSSL_KEY_GEN", null);
-    lib.defineCMacro("WOLFSSL_ASN_TEMPLATE", null);
-    lib.defineCMacro("WC_RSA_PSS", null);
-    lib.defineCMacro("HAVE_TLS_EXTENSIONS", null);
-    lib.defineCMacro("HAVE_WC_INTROSPECTION", null);
-    lib.defineCMacro("HAVE_SNI", null);
-    lib.defineCMacro("HAVE_MAX_FRAGMENT", null);
-    lib.defineCMacro("HAVE_TRUNCATED_HMAC", null);
-    lib.defineCMacro("HAVE_ALPN", null);
-    lib.defineCMacro("HAVE_TRUSTED_CA", null);
-    lib.defineCMacro("HAVE_HKDF", null);
     lib.defineCMacro("BUILD_GCM", null);
-    lib.defineCMacro("HAVE_AESCCM", null);
+    lib.defineCMacro("ECC_TIMING_RESISTANT", null);
+
     lib.defineCMacro("HAVE_AESGCM", null);
-    lib.defineCMacro("HAVE_SESSION_TICKET", null);
+    lib.defineCMacro("HAVE_ALPN", null);
     lib.defineCMacro("HAVE_CHACHA", null);
-    lib.defineCMacro("HAVE_POLY1305", null);
     lib.defineCMacro("HAVE_ECC", null);
     lib.defineCMacro("HAVE_FFDHE_2048", null);
     lib.defineCMacro("HAVE_FFDHE_3072", null);
     lib.defineCMacro("HAVE_FFDHE_4096", null);
     lib.defineCMacro("HAVE_FFDHE_6144", null);
     lib.defineCMacro("HAVE_FFDHE_8192", null);
+    lib.defineCMacro("HAVE_HKDF", null);
+    lib.defineCMacro("HAVE_MAX_FRAGMENT", null);
     lib.defineCMacro("HAVE_ONE_TIME_AUTH", null);
+    lib.defineCMacro("HAVE_POLY1305", null);
+    lib.defineCMacro("HAVE_PTHREAD", null);
+    lib.defineCMacro("HAVE_SESSION_TICKET", null);
+    lib.defineCMacro("HAVE_SNI", null);
     lib.defineCMacro("HAVE_SYS_TIME_H", null);
-    lib.defineCMacro("SESSION_INDEX", null);
-    lib.defineCMacro("SESSION_CERTS", null);
+    lib.defineCMacro("HAVE_TLS_EXTENSIONS", null);
+    lib.defineCMacro("HAVE_TRUNCATED_HMAC", null);
+    lib.defineCMacro("HAVE_TRUSTED_CA", null);
+    lib.defineCMacro("HAVE_WC_INTROSPECTION", null);
+
+    lib.defineCMacro("NO_INLINE", null);
+    lib.defineCMacro("NO_MD4", null);
+
     lib.defineCMacro("OPENSSL_EXTRA_X509", null);
     lib.defineCMacro("OPENSSL_EXTRA_X509_SMALL", null);
+
+    lib.defineCMacro("SESSION_CERTS", null);
+    lib.defineCMacro("SESSION_INDEX", null);
+
+    lib.defineCMacro("TFM_TIMING_RESISTANT", null);
+
+    lib.defineCMacro("WC_RSA_BLINDING", null);
+    lib.defineCMacro("WC_RSA_PSS", null);
+
+    lib.defineCMacro("WOLFSSL_ASN_TEMPLATE", null);
+    lib.defineCMacro("WOLFSSL_KEY_GEN", null);
+    lib.defineCMacro("WOLFSSL_SHA224", null);
+    lib.defineCMacro("WOLFSSL_SHA384", null);
+    lib.defineCMacro("WOLFSSL_SHA3", null);
+    lib.defineCMacro("WOLFSSL_SHA512", null);
+    lib.defineCMacro("WOLFSSL_TLS13", null);
 }
 
 fn addSourceFile(lib: *std.build.CompileStep) void {
