@@ -688,6 +688,9 @@ WOLFSSL_ABI WOLFSSL_API int wolfCrypt_Cleanup(void);
         #ifndef XSTAT
         #define XSTAT       _stat
         #endif
+        #ifndef XSTAT_TYPE
+        #define XSTAT_TYPE struct _stat
+        #endif
         #define XS_ISREG(s) (s & _S_IFREG)
         #define SEPARATOR_CHAR ';'
 
@@ -695,6 +698,9 @@ WOLFSSL_ABI WOLFSSL_API int wolfCrypt_Cleanup(void);
         #include <sys/stat.h>
         #ifndef XSTAT
         #define XSTAT _stat64
+        #endif
+        #ifndef XSTAT_TYPE
+        #define XSTAT_TYPE struct _stat64
         #endif
         #define XS_ISREG(s) S_ISREG(s)
         #define SEPARATOR_CHAR ';'
@@ -705,6 +711,9 @@ WOLFSSL_ABI WOLFSSL_API int wolfCrypt_Cleanup(void);
     #elif defined(WOLFSSL_TELIT_M2MB)
         #ifndef XSTAT
         #define XSTAT       m2mb_fs_stat
+        #endif
+        #ifndef XSTAT_TYPE
+        #define XSTAT_TYPE struct m2mb_fs_stat
         #endif
         #define XS_ISREG(s) (s & M2MB_S_IFREG)
         #define SEPARATOR_CHAR ':'
@@ -718,13 +727,13 @@ WOLFSSL_ABI WOLFSSL_API int wolfCrypt_Cleanup(void);
         #ifndef XSTAT
         #define XSTAT       stat
         #endif
+        #ifndef XSTAT_TYPE
+        #define XSTAT_TYPE struct stat
+        #endif
         #define XS_ISREG(s) S_ISREG(s)
         #define SEPARATOR_CHAR ':'
     #endif
 
-    #ifndef XSTAT_TYPE
-        #define XSTAT_TYPE struct XSTAT
-    #endif
     #endif
 #endif
 
