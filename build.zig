@@ -35,10 +35,11 @@ pub fn build(b: *std.Build) !void {
     const optimize = b.standardOptimizeOption(.{});
 
     const is_shared = b.option(bool, "shared", "Build wolfssl as a shared library.") orelse true;
+    const debug = b.option(bool, "debug", "Enable debug logging.") orelse false;
     const with_tests = b.option(bool, "tests", "Build test suite as executable.") orelse false;
 
     const lib = createLibWolfSSL(b, is_shared, target, optimize);
-    defineMacros(lib);
+    defineMacros(lib, debug);
     b.installArtifact(lib);
 
     if (with_tests) {
@@ -139,7 +140,7 @@ fn defineTestMacros(lib: *std.build.CompileStep, target: std.zig.CrossTarget) !v
     }
 }
 
-fn defineMacros(lib: *std.build.CompileStep) void {
+fn defineMacros(lib: *std.build.CompileStep, debug: bool) void {
     lib.defineCMacro("BUILD_GCM", null);
     lib.defineCMacro("ECC_TIMING_RESISTANT", null);
 
@@ -189,6 +190,10 @@ fn defineMacros(lib: *std.build.CompileStep) void {
     lib.defineCMacro("WOLFSSL_SHA384", null);
     lib.defineCMacro("WOLFSSL_SHA3", null);
     lib.defineCMacro("WOLFSSL_SHA512", null);
+
+    if (debug) {
+        lib.defineCMacro("DEBUG_WOLFSSL", "");
+    }
 }
 
 fn addSourceFile(lib: *std.build.CompileStep) void {
