@@ -159,6 +159,8 @@ fn defineMacros(lib: *std.build.CompileStep) void {
     lib.defineCMacro("HAVE_POLY1305", null);
     lib.defineCMacro("HAVE_PTHREAD", null);
     lib.defineCMacro("HAVE_SESSION_TICKET", null);
+    lib.defineCMacro("HAVE_SECURE_RENEGOTIATION", null);
+    lib.defineCMacro("HAVE_SERVER_RENEGOTIATION_INFO", null);
     lib.defineCMacro("HAVE_SNI", null);
     lib.defineCMacro("HAVE_SYS_TIME_H", null);
     lib.defineCMacro("HAVE_TLS_EXTENSIONS", null);
