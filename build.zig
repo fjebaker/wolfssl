@@ -39,7 +39,7 @@ pub fn build(b: *std.Build) !void {
     const with_tests = b.option(bool, "tests", "Build test suite as executable.") orelse false;
 
     const lib = createLibWolfSSL(b, is_shared, target, optimize);
-    try defineMacros(lib, debug, target);
+    defineMacros(lib, debug);
     b.installArtifact(lib);
 
     if (with_tests) {
@@ -143,118 +143,44 @@ fn defineTestMacros(lib: *std.build.CompileStep, target: std.zig.CrossTarget) !v
 fn defineMacros(
     lib: *std.build.CompileStep,
     debug: bool,
-    target: std.zig.CrossTarget,
-) !void {
-    lib.defineCMacro("BUILD_USER_RSA", "");
-    lib.defineCMacro("HAVE_C___ATOMIC", "1");
-    lib.defineCMacro("HAVE_DECL_ATEXIT", "1");
-    lib.defineCMacro("HAVE_DECL_GETADDRINFO", "1");
-    lib.defineCMacro("HAVE_DECL_GETHOSTBYNAME", "1");
-    lib.defineCMacro("HAVE_DECL_GETTIMEOFDAY", "1");
-    lib.defineCMacro("HAVE_DECL_GMTIME_R", "1");
-    lib.defineCMacro("HAVE_DECL_GMTIME_S", "0");
-    lib.defineCMacro("HAVE_DECL_INET_NTOA", "1");
-    lib.defineCMacro("HAVE_DECL_MEMSET", "1");
-    lib.defineCMacro("HAVE_DECL_SOCKET", "1");
-    lib.defineCMacro("HAVE_DECL_STRFTIME", "1");
-    lib.defineCMacro("HAVE_DLFCN_H", "1");
-    lib.defineCMacro("HAVE_ERRNO_H", "1");
-    lib.defineCMacro("HAVE_FCNTL_H", "1");
-    lib.defineCMacro("HAVE_GETADDRINFO", "1");
-    lib.defineCMacro("HAVE_GETHOSTBYNAME", "1");
-    lib.defineCMacro("HAVE_GETTIMEOFDAY", "1");
-    lib.defineCMacro("HAVE_GMTIME_R", "1");
-    lib.defineCMacro("HAVE_INET_NTOA", "1");
-    lib.defineCMacro("HAVE_INTTYPES_H", "1");
-    lib.defineCMacro("HAVE_LIMITS_H", "1");
-    lib.defineCMacro("HAVE_MEMSET", "1");
-    lib.defineCMacro("HAVE_NETDB_H", "1");
-    lib.defineCMacro("HAVE_NETINET_IN_H", "1");
-    lib.defineCMacro("HAVE_PTHREAD", "1");
-    lib.defineCMacro("HAVE_PTHREAD_PRIO_INHERIT", "1");
-    lib.defineCMacro("HAVE_SOCKET", "1");
-    lib.defineCMacro("HAVE_STDDEF_H", "1");
-    lib.defineCMacro("HAVE_STDINT_H", "1");
-    lib.defineCMacro("HAVE_STDIO_H", "1");
-    lib.defineCMacro("HAVE_STDLIB_H", "1");
-    lib.defineCMacro("HAVE_STRFTIME", "1");
-    lib.defineCMacro("HAVE_STRING_H", "1");
-    lib.defineCMacro("HAVE_STRINGS_H", "1");
-    lib.defineCMacro("HAVE_SYS_IOCTL_H", "1");
-    lib.defineCMacro("HAVE_SYS_SOCKET_H", "1");
-    lib.defineCMacro("HAVE_SYS_STAT_H", "1");
-    lib.defineCMacro("HAVE_SYS_TIME_H", "1");
-    lib.defineCMacro("HAVE_SYS_TYPES_H", "1");
-    lib.defineCMacro("HAVE_SYS_UN_H", "1");
-    lib.defineCMacro("HAVE_TIME_H", "1");
-    lib.defineCMacro("HAVE___UINT128_T", "1");
-    lib.defineCMacro("HAVE_UINTPTR_T", "1");
-    lib.defineCMacro("HAVE_UNISTD_H", "1");
-    lib.defineCMacro("HAVE_VISIBILITY", "1");
-    lib.defineCMacro("SIZEOF_LONG", "8");
-    lib.defineCMacro("SIZEOF_LONG_LONG", "8");
-    lib.defineCMacro("SIZEOF_TIME_T", "8");
-
-    lib.defineCMacro("BUILDING_WOLFSSL", "");
-    lib.defineCMacro("ECC_SHAMIR", "");
-    lib.defineCMacro("ECC_TIMING_RESISTANT", "");
-    lib.defineCMacro("ERROR_QUEUE_PER_THREAD", "");
-    lib.defineCMacro("GCM_TABLE_4BIT", "");
-    lib.defineCMacro("HAVE_AESGCM", "");
-    lib.defineCMacro("HAVE_CHACHA", "");
-    lib.defineCMacro("HAVE_DH_DEFAULT_PARAMS", "");
-    lib.defineCMacro("HAVE_ECC", "");
-    lib.defineCMacro("HAVE_ENCRYPT_THEN_MAC", "");
-    lib.defineCMacro("HAVE_EXTENDED_MASTER", "");
-    lib.defineCMacro("HAVE_FFDHE_2048", "");
-    lib.defineCMacro("HAVE_HASHDRBG", "");
-    lib.defineCMacro("HAVE_HKDF", "");
-    lib.defineCMacro("HAVE_POLY1305", "");
-    lib.defineCMacro("HAVE_SECURE_RENEGOTIATION", "");
-    lib.defineCMacro("HAVE_SERVER_RENEGOTIATION_INFO", "");
-    lib.defineCMacro("HAVE_SNI", "");
-    lib.defineCMacro("HAVE_SUPPORTED_CURVES", "");
-    lib.defineCMacro("HAVE_THREAD_LS", "");
-    lib.defineCMacro("HAVE_TLS_EXTENSIONS", "");
-    lib.defineCMacro("HAVE_WC_INTROSPECTION", "");
-    lib.defineCMacro("NO_DES3", "");
-    lib.defineCMacro("NO_DO178", "");
-    lib.defineCMacro("NO_DSA", "");
-    lib.defineCMacro("NO_INLINE", "");
-    lib.defineCMacro("NO_MD4", "");
-    lib.defineCMacro("NO_PSK", "");
-    lib.defineCMacro("NO_RC4", "");
-    lib.defineCMacro("TFM_ECC256", "");
-    lib.defineCMacro("TFM_TIMING_RESISTANT", "");
-    lib.defineCMacro("WC_NO_ASYNC_THREADING", "");
-    lib.defineCMacro("WC_RSA_BLINDING", "");
-    lib.defineCMacro("WC_RSA_PSS", "");
-    lib.defineCMacro("WOLFSSL_ASN_PRINT", "");
-    lib.defineCMacro("WOLFSSL_ASN_TEMPLATE", "");
-    lib.defineCMacro("WOLFSSL_BASE64_ENCODE", "");
-    lib.defineCMacro("WOLFSSL_HAVE_ATOMIC_H", "");
-    lib.defineCMacro("WOLFSSL_NO_SHAKE128", "");
-    lib.defineCMacro("WOLFSSL_NO_SHAKE256", "");
-    lib.defineCMacro("WOLFSSL_PSS_LONG_SALT", "");
-    lib.defineCMacro("WOLFSSL_SHA224", "");
-    lib.defineCMacro("WOLFSSL_SHA3", "");
-    lib.defineCMacro("WOLFSSL_SHA384", "");
-    lib.defineCMacro("WOLFSSL_SHA512", "");
-    lib.defineCMacro("WOLFSSL_SP_MATH_ALL", "");
-    lib.defineCMacro("WOLFSSL_SYS_CA_CERTS", "");
-    lib.defineCMacro("WOLFSSL_TLS13", "");
-    lib.defineCMacro("WOLFSSL_USE_ALIGN", "");
-
-    switch (target.getCpuArch()) {
-        .x86_64 => {
-            lib.defineCMacro("WOLFSSL_SP_X86_64", "");
-            lib.defineCMacro("WOLFSSL_X86_64_BUILD", "");
-        },
-        else => |arch| {
-            std.debug.print("Architecture: {any}", .{arch});
-            return CompileError.ArchitectureNotSupported;
-        },
-    }
+) void {
+    lib.defineCMacro("BUILD_GCM", null);
+    lib.defineCMacro("ECC_TIMING_RESISTANT", null);
+    lib.defineCMacro("HAVE_AESCCM", null);
+    lib.defineCMacro("HAVE_ALPN", null);
+    lib.defineCMacro("HAVE_CHACHA", null);
+    lib.defineCMacro("HAVE_ECC", null);
+    lib.defineCMacro("HAVE_FFDHE_2048", null);
+    lib.defineCMacro("HAVE_FFDHE_3072", null);
+    lib.defineCMacro("HAVE_FFDHE_4096", null);
+    lib.defineCMacro("HAVE_FFDHE_6144", null);
+    lib.defineCMacro("HAVE_FFDHE_8192", null);
+    lib.defineCMacro("HAVE_HKDF", null);
+    lib.defineCMacro("HAVE_MAX_FRAGMENT", null);
+    lib.defineCMacro("HAVE_ONE_TIME_AUTH", null);
+    lib.defineCMacro("HAVE_POLY1305", null);
+    lib.defineCMacro("HAVE_PTHREAD", null);
+    lib.defineCMacro("HAVE_SESSION_TICKET", null);
+    lib.defineCMacro("HAVE_SNI", null);
+    lib.defineCMacro("HAVE_SYS_TIME_H", null);
+    lib.defineCMacro("HAVE_TLS_EXTENSIONS", null);
+    lib.defineCMacro("HAVE_TRUNCATED_HMAC", null);
+    lib.defineCMacro("HAVE_TRUSTED_CA", null);
+    lib.defineCMacro("NO_INLINE", null);
+    lib.defineCMacro("OPENSSL_EXTRA_X509", null);
+    lib.defineCMacro("OPENSSL_EXTRA_X509_SMALL", null);
+    lib.defineCMacro("SESSION_CERTS", null);
+    lib.defineCMacro("SESSION_INDEX", null);
+    lib.defineCMacro("TFM_TIMING_RESISTANT", null);
+    lib.defineCMacro("WC_RSA_BLINDING", null);
+    lib.defineCMacro("WC_RSA_PSS", null);
+    // tls 1.3
+    lib.defineCMacro("HAVE_FFDHE_2048", null);
+    lib.defineCMacro("HAVE_HKDF", null);
+    lib.defineCMacro("HAVE_TLS_EXTENSIONS", null);
+    lib.defineCMacro("WC_RSA_PSS", null);
+    lib.defineCMacro("WOLFSSL_TLS13", null);
+    lib.defineCMacro("WOLFSSL_TLS13", null);
 
     if (debug) {
         lib.defineCMacro("DEBUG_WOLFSSL", "");
