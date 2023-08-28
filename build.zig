@@ -93,7 +93,6 @@ fn defineTestMacros(lib: *std.build.CompileStep, target: std.zig.CrossTarget) !v
     lib.defineCMacro("NO_DES3", null);
     lib.defineCMacro("NO_DO178", null);
     lib.defineCMacro("NO_DSA", null);
-    lib.defineCMacro("NO_HAVE_CONFIG_H", null);
     lib.defineCMacro("NO_INLINE", null);
     lib.defineCMacro("NO_MD4", null);
     lib.defineCMacro("NO_PSK", null);
@@ -148,6 +147,7 @@ fn defineMacros(lib: *std.build.CompileStep) void {
     lib.defineCMacro("HAVE_ALPN", null);
     lib.defineCMacro("HAVE_CHACHA", null);
     lib.defineCMacro("HAVE_ECC", null);
+    lib.defineCMacro("HAVE_DH", null);
     lib.defineCMacro("HAVE_FFDHE_2048", null);
     lib.defineCMacro("HAVE_FFDHE_3072", null);
     lib.defineCMacro("HAVE_FFDHE_4096", null);
@@ -159,6 +159,7 @@ fn defineMacros(lib: *std.build.CompileStep) void {
     lib.defineCMacro("HAVE_POLY1305", null);
     lib.defineCMacro("HAVE_PTHREAD", null);
     lib.defineCMacro("HAVE_SESSION_TICKET", null);
+    lib.defineCMacro("HAVE_SUPPORTED_CURVES", null);
     lib.defineCMacro("HAVE_SECURE_RENEGOTIATION", null);
     lib.defineCMacro("HAVE_SERVER_RENEGOTIATION_INFO", null);
     lib.defineCMacro("HAVE_SNI", null);
@@ -180,7 +181,14 @@ fn defineMacros(lib: *std.build.CompileStep) void {
     lib.defineCMacro("WC_RSA_BLINDING", null);
     lib.defineCMacro("WC_RSA_PSS", null);
 
+    lib.defineCMacro("WOLFSSL_ASN_PRINT", null);
     lib.defineCMacro("WOLFSSL_TLS13", null);
+    lib.defineCMacro("WOLFSSL_POST_HANDSHAKE_AUTH", null);
+    lib.defineCMacro("WOLFSSL_SEND_HRR_COOKIE", null);
+    lib.defineCMacro("WOLFSSL_SHA224", null);
+    lib.defineCMacro("WOLFSSL_SHA384", null);
+    lib.defineCMacro("WOLFSSL_SHA3", null);
+    lib.defineCMacro("WOLFSSL_SHA512", null);
 }
 
 fn addSourceFile(lib: *std.build.CompileStep) void {
